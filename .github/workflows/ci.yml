@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: animehub
+          POSTGRES_USER: animehub_dev
+          POSTGRES_PASSWORD: animehub_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U animehub_dev -d animehub"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://animehub_dev:animehub_ci@127.0.0.1:5432/animehub
+      PORT: 8000
+      CORS_ORIGINS: http://localhost:3000
+      NEXT_PUBLIC_API_URL: http://localhost:8000/api/v1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.13.0
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@11.20.0 --activate
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm prisma:validate
+      - run: pnpm prisma:generate
+      - run: pnpm format:check
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm --filter @animehub/api test:e2e
+      - run: pnpm build
+
+  containers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate Compose
+        run: docker compose config
+      - name: Build API image
+        run: docker build --file apps/api/Dockerfile --tag animehub-api:test .
+      - name: Build web image
+        run: docker build --file apps/web/Dockerfile --tag animehub-web:test .
