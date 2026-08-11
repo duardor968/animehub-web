@@ -2,11 +2,15 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, dev]
   pull_request:
 
 permissions:
   contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   quality:
@@ -30,6 +34,10 @@ jobs:
       PORT: 8000
       CORS_ORIGINS: http://localhost:3000
       NEXT_PUBLIC_API_URL: http://localhost:8000/api/v1
+      API_INTERNAL_URL: http://localhost:8000/api/v1
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+      JOBS_ENABLED: "false"
+      LOG_LEVEL: silent
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -37,18 +45,54 @@ jobs:
           node-version: 24.13.0
       - name: Enable pnpm
         run: corepack enable && corepack prepare pnpm@11.20.0 --activate
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm prisma:validate
-      - run: pnpm prisma:generate
-      - run: pnpm format:check
-      - run: pnpm lint
-      - run: pnpm typecheck
-      - run: pnpm test
-      - run: pnpm --filter @animehub/api test:e2e
-      - run: pnpm build
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Apply migrations
+        run: pnpm --filter @animehub/api exec prisma migrate deploy
+      - name: Validate Prisma
+        run: pnpm prisma:validate
+      - name: Generate Prisma client
+        run: pnpm prisma:generate
+      - name: Check formatting
+        run: pnpm format:check
+      - name: Lint
+        run: pnpm lint
+      - name: Type-check
+        run: pnpm typecheck
+      - name: Run unit tests
+        run: pnpm test
+      - name: Run API integration tests
+        run: pnpm --filter @animehub/api test:e2e
+      - name: Check OpenAPI contract drift
+        run: pnpm openapi:check
+      - name: Audit high-severity dependencies
+        run: pnpm audit --audit-level high
+      - name: Build applications
+        run: pnpm build
+
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  dependency-review:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/dependency-review-action@v4
 
   containers:
     runs-on: ubuntu-latest
+    env:
+      POSTGRES_PASSWORD: animehub_ci
     steps:
       - uses: actions/checkout@v4
       - name: Validate Compose

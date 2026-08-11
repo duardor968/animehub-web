@@ -1,57 +1,61 @@
 # Agent Instructions
 
-## Propósito y estado
+## Producto
 
-AnimeHub Web es un monorepo pnpm con una interfaz pública Next.js y un API NestJS/Fastify. En esta etapa solo es un scaffold. No presentes health checks, la portada o la configuración de Prisma como funcionalidad de producto.
+AnimeHub Web es un catálogo público sin cuentas y una API REST compartida con AnimeHub Desktop. La documentación se escribe en español. Código, nombres de archivo, identificadores y commits se escriben en inglés.
 
-La documentación se escribe en español. Código, nombres de archivos, identificadores y commits se escriben en inglés.
+No presentes trabajo futuro como funcionalidad existente ni añadas textos pedagógicos a la interfaz. Cada elemento visual debe resolver jerarquía, comprensión, navegación, estado o acción.
 
-## Límites de arquitectura
+## Límites
 
-- Mantén `apps/web` y `apps/api` como workspace pnpm simple; no introduzcas Nx, Turborepo ni microservicios sin una decisión explícita.
-- La API pública vive bajo `/api/v1` y documenta sus cambios mediante OpenAPI.
-- AnimeAV1 es la única fuente inicial. Todo scraping ocurre en el servidor y nunca en Next.js, el navegador o AnimeHub Desktop.
-- Web y Desktop consumen el mismo API alojado. Desktop podrá añadir caché offline, pero no un scraper C++ alternativo.
-- La web no tiene cuentas ni biblioteca personal.
-- Click'n'Load y MyJDownloader son operaciones del navegador. Los secretos de MyJDownloader deben permanecer en memoria durante la sesión y no pueden enviarse, registrarse o persistirse en el servidor.
-- Redis es una mejora de caché opcional: un Redis caído no debe impedir arrancar el scaffold ni responder health live.
-- No añadas modelos Prisma o migraciones vacías antes de definir un dominio real.
+- Mantén el workspace pnpm simple con `apps/web` y `apps/api`; no introduzcas Nx, Turborepo ni microservicios.
+- AnimeAV1 es la única fuente inicial. Todo acceso a ella ocurre en Nest; nunca en Next.js cliente ni en Desktop.
+- Consume únicamente datos JSON de SvelteKit. No ejecutes scripts ni persistas HTML o payloads crudos.
+- La web no tiene cuentas, biblioteca, seguimiento, reproducción, PWA, notificaciones ni administración.
+- No añadas Redis en v1.
+- No modifiques `animehub-desktop` ni `Anime downloader`; este último es solo un antecedente conceptual.
+- No ejecutes contenedores localmente. Los Dockerfiles y Compose existen para CI y Coolify.
+- Nunca uses Playwright en este proyecto. Para revisión visual inicial usa Chrome visible; para sesiones aisladas usa el navegador integrado de Codex.
 
-## Producto compartido
+## API y datos
 
-- La biblioteca personal pertenece exclusivamente a Desktop y es local y reconstruible.
-- Los estados personales se modelarán como colecciones SQLite, nunca como organización de carpetas físicas.
-- La reproducción se abre en una aplicación externa.
-- MEGA y Pixeldrain serán proveedores nativos de v1; aria2 administrará HTTP. JDownloader será opcional, tanto local como remoto.
-- Las notificaciones de episodios estarán activadas por defecto. La descarga automática se configurará por anime.
-- La identidad visual es nueva; solo se conserva el nombre AnimeHub del antecedente.
+- Conserva NestJS sobre Fastify y el prefijo `/api/v1`.
+- Mantén controladores finos, lógica en servicios, módulos por responsabilidad y Prisma como única frontera de persistencia.
+- OpenAPI es el contrato único para Web y Desktop. Después de cambiar interfaces ejecuta `pnpm openapi:generate` y versiona ambos artefactos generados.
+- Usa fechas UTC ISO 8601, envolturas `data/meta` y Problem Details para errores.
+- Valida entradas HTTP y payloads de la fuente antes de normalizarlos.
+- Conserva la proyección perezosa y durable, stale-while-revalidate, snapshots ordenados y las políticas de frescura documentadas.
+- No elimines registros por antigüedad. Solo un `404` explícito repetido puede marcar una obra no disponible.
+- pg-boss comparte PostgreSQL, admite dos trabajos masivos activos y procesa bloques de hasta 50 episodios.
+- Los tokens de capacidad duran 24 horas y solo se persisten como hash. El reintento afecta únicamente ítems fallidos.
+- Aplica límites por operación, timeouts y backoff ante `429/503`.
 
-## Convenciones por aplicación
+## Descargas y secretos
 
-### Web
+- La API solo resuelve enlaces estructurados; no conoce Click'n'Load, dispositivos ni credenciales MyJDownloader.
+- Click'n'Load se comunica desde el navegador con `127.0.0.1:9666`; nunca añadas un proxy del servidor.
+- MyJDownloader permanece detrás de un adaptador mínimo auditado. Deriva la sesión con Web Crypto, descarta la contraseña y no persistas credenciales.
+- No registres URLs de descarga, tokens de capacidad, cabeceras de autorización, contraseñas ni datos MyJDownloader.
+- Mantén CSP, Helmet, CORS por allowlist, request IDs, logs estructurados y redacción de secretos.
+- Nunca versiones `.env`, credenciales, cookies, dumps ni fixtures con URLs firmadas reales.
 
-- Usa App Router, componentes de servidor por defecto y componentes cliente solo cuando la interacción lo exija.
-- Antes de cambiar comportamiento de Next.js 16, consulta la documentación incluida en `node_modules/next/dist/docs/`.
-- Reutiliza HeroUI y bibliotecas open source maduras cuando encajen de forma natural, especialmente para accesibilidad, DnD y carruseles. Evita dependencias para abstracciones triviales.
-- Mantén una dirección editorial oscura, composición deliberada, tipografía clara y accesibilidad WCAG. La portada actual valida el pipeline, no es el diseño final.
+## Web y UX
 
-### API
-
-- Conserva Fastify; no dependas accidentalmente de Express en ejecución o pruebas.
-- Inyecta configuración mediante `@nestjs/config`. Nunca leas o expongas secretos fuera de los límites necesarios.
-- `health/live` comprueba el proceso. `health/ready` comprueba PostgreSQL. No conviertas Redis opcional en requisito de readiness sin una decisión explícita.
-- Mantén controladores finos, lógica en servicios y acceso de datos centralizado.
-
-## Seguridad y datos
-
-- Nunca confirmes ni versionas `.env`, credenciales, cookies, HTML capturado con datos sensibles o dumps de base de datos.
-- Valida entradas en la frontera HTTP y aplica listas explícitas de orígenes CORS.
-- No registres URLs firmadas, tokens de proveedores o datos de MyJDownloader.
-- No modifiques bases ajenas al rol y base dedicados `animehub_dev` / `animehub`.
+- Usa App Router y componentes de servidor por defecto; añade `use client` solo por interacción o APIs del navegador.
+- Antes de alterar comportamiento específico de Next.js 16, consulta la documentación instalada en `node_modules/next/dist/docs/`.
+- Mantén la dirección oscura, cálida y cinematográfica: fondos `#0B0A09`/`#161311`, texto `#F3EEE8`, secundario `#A69E96` y acento `#FF4A2D`.
+- Bricolage Grotesque corresponde a títulos y Manrope a interfaz. Las imágenes estructuran la composición; el bermellón señala acción.
+- Evita tarjetas vacías, ornamentos, autoplay, movimiento gratuito y dependencias para abstracciones triviales.
+- Usa HeroUI y bibliotecas maduras cuando resuelvan una interacción real. No añadas DnD si no existe una necesidad de producto.
+- Toda interacción táctil necesita equivalente de teclado y foco visible. Respeta `prefers-reduced-motion`.
+- Conserva filtros, páginas y consultas en la URL. Las búsquedas y trabajos deben ser `noindex`.
+- El envío rápido solo aplica a un episodio. Lotes y series completas siempre muestran un resumen previo.
 
 ## Calidad
 
-Antes de entregar cambios, ejecuta la comprobación mínima relevante y, para cambios transversales, toda la suite:
+Añade pruebas unitarias para lógica, integración/e2e para contratos HTTP y Testing Library para interacciones críticas. Simula AnimeAV1 con fixtures saneados; la fuente real solo puede aparecer en smoke tests manuales no bloqueantes.
+
+Antes de entregar cambios transversales ejecuta:
 
 ```bash
 pnpm install --frozen-lockfile
@@ -62,15 +66,16 @@ pnpm lint
 pnpm typecheck
 pnpm test
 pnpm --filter @animehub/api test:e2e
+pnpm openapi:check
+pnpm audit --audit-level high
 pnpm build
-docker compose config
 ```
 
-Añade pruebas unitarias para lógica y e2e para contratos HTTP. No dependas de Redis en las pruebas base.
+No descargues navegadores ni ejecutes Docker para la verificación local.
 
-## Git
+## Git y documentación
 
-- Usa Conventional Commits en inglés y cambios pequeños y enfocados.
-- No confirmes `node_modules`, `.next`, `dist`, `coverage`, clientes Prisma generados, archivos `.env` ni artefactos Docker.
-- No copies código, historial o artefactos de `Anime_downloader`; es solo antecedente conceptual.
-- Mantén `README.md`, `.env.example` y OpenAPI sincronizados con interfaces públicas.
+- Trabaja en `dev` con Conventional Commits en inglés. Avanza `main` solamente mediante fast-forward después de CI verde.
+- No confirmes `node_modules`, `.next`, `dist`, `coverage`, clientes Prisma generados, `.env` ni artefactos de navegador o Docker.
+- Mantén `README.md`, `.env.example`, migraciones, OpenAPI y tipos generados sincronizados.
+- No reescribas cambios ajenos ni uses operaciones Git destructivas.

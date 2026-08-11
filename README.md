@@ -1,41 +1,45 @@
 # AnimeHub Web
 
-AnimeHub Web será la superficie pública para descubrir anime y episodios, acompañada por una API central consumida también por AnimeHub Desktop. Este repositorio nace como una reconstrucción desde cero: el proyecto anterior sirve únicamente como antecedente conceptual y no comparte código ni historial.
+AnimeHub Web es un catálogo público y anónimo de anime con una API REST compartida por la web y el futuro AnimeHub Desktop. AnimeAV1 es la única fuente inicial; el servidor interpreta sus datos JSON de SvelteKit, los valida y mantiene una proyección durable en PostgreSQL.
 
-> **Estado:** scaffold ejecutable. Solo existen una portada técnica, health checks y documentación OpenAPI; todavía no hay catálogo, scraping, cuentas, biblioteca ni descargas.
+El proyecto es una reconstrucción independiente. `Anime downloader` permanece únicamente como antecedente conceptual: no se comparte código, historial ni artefactos.
 
-## Dos productos, un contrato
+## Estado
 
-- **AnimeHub Web** ofrece catálogo público sin cuentas y operaciones de descarga iniciadas deliberadamente en el navegador.
-- **AnimeHub Desktop** será una aplicación nativa Qt para biblioteca local, reproducción externa y administración de descargas.
-- Ambos consumen la misma API REST alojada. El scraper pertenece exclusivamente al servidor: no se duplicará en C++.
+La v1 incluye:
+
+- Portada editorial con episodios recientes, destacados y obras recién añadidas.
+- Catálogo paginado, búsqueda, sugerencias, filtros y horario semanal estimado.
+- Fichas con metadatos, relaciones explícitas y episodios paginados.
+- Resolución de enlaces por episodio con preferencia SUB y fallback DUB.
+- Lotes y series completas mediante trabajos PostgreSQL recuperables durante 24 horas.
+- Envío desde el navegador a Click'n'Load o MyJDownloader, además de copia de enlaces.
+- OpenAPI público como contrato único para Web y Desktop.
+
+No hay cuentas, biblioteca, seguimiento, reproducción, PWA, notificaciones ni panel administrativo.
+
+## Web y Desktop
+
+- **AnimeHub Web** se ocupa del descubrimiento público y de iniciar operaciones de descarga en el navegador.
+- **AnimeHub Desktop** será una aplicación Qt nativa con biblioteca local, reproducción externa y motores de descarga propios.
+- Ambos consumen la API alojada. El scraper pertenece exclusivamente al servidor y no se duplicará en C++.
 
 ## Stack
 
 - Node.js 24.13.0 y pnpm 11.20.0
-- Next.js 16.3.0, React 19.2.8, TypeScript 5.9 y App Router
+- Next.js 16.3.0, React 19.2.8, App Router y TypeScript 5.9
 - HeroUI 3.2.3 y Tailwind CSS 4.3.3
-- NestJS 11.1.28 sobre Fastify
-- Prisma 7.9.1 y PostgreSQL 18
-- Redis declarado para caché futura, pero opcional en este estado
-- Vitest, Jest, ESLint y Prettier
+- NestJS 11.1.28 sobre Fastify 5
+- Prisma 7.9.1, PostgreSQL y pg-boss
+- Vitest, Jest, Testing Library, ESLint y Prettier
 
-## Estructura
-
-```text
-apps/
-  web/   Aplicación Next.js
-  api/   API NestJS, contrato OpenAPI y Prisma
-compose.yaml
-```
-
-Es un workspace pnpm deliberadamente simple, sin Nx ni Turborepo.
+El workspace pnpm mantiene solamente `apps/web` y `apps/api`, sin Nx ni Turborepo.
 
 ## Requisitos
 
 - Node.js 24
-- Corepack y pnpm 11.20.0
-- PostgreSQL local, o Docker con Compose
+- Corepack con pnpm 11.20.0
+- PostgreSQL local
 
 ```powershell
 corepack enable
@@ -44,12 +48,14 @@ pnpm install --frozen-lockfile
 Copy-Item .env.example apps/api/.env
 ```
 
-Edita `apps/api/.env` con una URL de PostgreSQL válida. Los archivos `.env` están ignorados y nunca deben versionarse.
+Configura `DATABASE_URL` en `apps/api/.env`. Los archivos `.env` están ignorados y nunca deben versionarse.
 
-## Desarrollo
+## Desarrollo local
+
+Aplica la migración y genera Prisma antes de iniciar ambos procesos:
 
 ```powershell
-pnpm prisma:validate
+pnpm --filter @animehub/api exec prisma migrate deploy
 pnpm prisma:generate
 pnpm dev
 ```
@@ -57,53 +63,91 @@ pnpm dev
 - Web: `http://localhost:3000`
 - API: `http://localhost:8000/api/v1`
 - Swagger UI: `http://localhost:8000/docs`
-- OpenAPI JSON: `http://localhost:8000/docs-json`
+- OpenAPI JSON: `http://localhost:8000/openapi.json`
 
-Comprobaciones disponibles:
+Para trabajar con un único proceso:
 
 ```powershell
+pnpm dev:web
+pnpm dev:api
+```
+
+## Verificación
+
+```powershell
+pnpm prisma:validate
+pnpm prisma:generate
 pnpm format:check
 pnpm lint
 pnpm typecheck
 pnpm test
 pnpm --filter @animehub/api test:e2e
+pnpm openapi:check
+pnpm audit --audit-level high
 pnpm build
 ```
 
-## Contenedores y Coolify
+La revisión visual inicial se realiza en Chrome visible. Las comprobaciones aisladas posteriores usan el navegador integrado de Codex; este proyecto no utiliza Playwright.
 
-```powershell
-docker compose config
-docker compose up --build
-```
+## Arquitectura
 
-Compose publica PostgreSQL en `55432` y Redis en `56379` para no competir con instalaciones locales en `5432` y `6379`. Redis solo se inicia con `docker compose --profile cache up`. Los Dockerfiles de `apps/web` y `apps/api` pueden configurarse como recursos separados en Coolify; no se realiza ningún despliegue desde este repositorio.
+### Fuente y proyección
 
-## Variables públicas
+La API consume únicamente endpoints JSON internos de SvelteKit y decodifica sus estructuras con `devalue`. Cada respuesta se valida antes de normalizarla; no se guardan HTML, scripts ni payloads crudos.
 
-| Variable              | Uso                                          |
-| --------------------- | -------------------------------------------- |
-| `PORT`                | Puerto HTTP del API                          |
-| `DATABASE_URL`        | Conexión PostgreSQL del API                  |
-| `REDIS_URL`           | Caché futura; no se conecta todavía          |
-| `CORS_ORIGINS`        | Orígenes web permitidos, separados por comas |
-| `NEXT_PUBLIC_API_URL` | Base pública del API utilizada por Next.js   |
+La proyección en PostgreSQL es perezosa y durable:
 
-## Arquitectura objetivo
+- Solo persiste contenido descubierto por solicitudes reales.
+- Sirve la última copia mientras revalida datos vencidos.
+- Un `404` explícito repetido marca una obra como no disponible sin borrar su historial.
+- La frescura varía entre 15 minutos y 180 días según el recurso y su estabilidad.
 
-AnimeAV1 será la única fuente inicial. El servidor hará el scraping, normalizará los datos y publicará REST/OpenAPI bajo `/api/v1`. La web no tendrá cuentas. Click'n'Load y MyJDownloader se ejecutarán desde el navegador; cualquier secreto de MyJDownloader existirá únicamente durante la sesión y nunca llegará al servidor.
+### Descargas
 
-El escritorio usará la API alojada con caché offline y conservará su biblioteca personal en SQLite local. Sus estados personales serán colecciones reconstruibles, no carpetas físicas. MEGA y Pixeldrain serán los proveedores nativos iniciales, aria2 manejará HTTP y JDownloader seguirá como integración opcional local o remota.
+La API devuelve enlaces estructurados por episodio, audio y proveedor. Los lotes se resuelven con pg-boss, hasta dos trabajos simultáneos y bloques internos de 50. Cada trabajo entrega un token de capacidad aleatorio; PostgreSQL conserva únicamente su hash.
 
-## Roadmap
+Click'n'Load se comunica directamente con `127.0.0.1:9666`. MyJDownloader se ejecuta completamente en el navegador mediante un adaptador mínimo: la contraseña se descarta al derivar la sesión y ningún secreto llega a la API. Si Click'n'Load está bloqueado, la interfaz ofrece MyJDownloader o copiar enlaces.
 
-1. Diseñar el contrato de catálogo y el modelo de datos del servidor.
-2. Implementar el scraper de AnimeAV1 y una caché Redis tolerante a fallos.
-3. Construir la experiencia pública de descubrimiento sin autenticación.
-4. Añadir Click'n'Load y MyJDownloader exclusivamente en el cliente web.
-5. Integrar el mismo contrato en AnimeHub Desktop.
+### Contrato
 
-Las notificaciones de episodios estarán activadas por defecto en Desktop; la descarga automática será configurable por anime. La reproducción se delegará a una aplicación externa.
+Todas las respuestas de éxito usan `data` y `meta` cuando corresponde; los errores usan Problem Details. Las rutas públicas viven bajo `/api/v1`:
+
+- `GET /health/live` y `GET /health/ready`
+- `GET /home`
+- `GET /catalog` y `GET /catalog/suggestions`
+- `GET /anime/:slug` y `GET /anime/:slug/episodes`
+- `GET /schedule`
+- `POST /anime/:slug/downloads/resolve`
+- `POST /anime/:slug/download-jobs`
+- `GET /download-jobs/:id`
+- `POST /download-jobs/:id/retry`
+- `POST /download-jobs/:id/cancel`
+
+`apps/api/openapi.json` es el contrato versionado. `apps/web/src/lib/api/generated.ts` se genera desde ese documento y CI rechaza cualquier drift.
+
+## Variables
+
+| Variable                                            | Uso                                                         |
+| --------------------------------------------------- | ----------------------------------------------------------- |
+| `PORT`                                              | Puerto HTTP de la API                                       |
+| `DATABASE_URL`                                      | Conexión PostgreSQL y almacenamiento de trabajos            |
+| `CORS_ORIGINS`                                      | Orígenes permitidos, separados por comas                    |
+| `NEXT_PUBLIC_API_URL`                               | URL pública de `/api/v1` accesible por el navegador         |
+| `API_INTERNAL_URL`                                  | URL de la API usada por el renderizado del servidor Next.js |
+| `NEXT_PUBLIC_SITE_URL`                              | Origen canónico público de la web                           |
+| `ANIMEAV1_BASE_URL`                                 | Origen de la única fuente permitida                         |
+| `SOURCE_USER_AGENT`                                 | Identificación de las solicitudes a la fuente               |
+| `JOBS_ENABLED`                                      | Activa los workers pg-boss; puede desactivarse en pruebas   |
+| `LOG_LEVEL`                                         | Nivel de logs estructurados de Fastify                      |
+| `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` | Credenciales exigidas únicamente por Compose                |
+
+## Producción
+
+Los Dockerfiles y `compose.yaml` preparan Web, API y PostgreSQL para Coolify. No es necesario ejecutar contenedores durante el desarrollo local. CI valida Compose y construye ambas imágenes sin publicarlas; no hay despliegue automático ni dominios configurados.
+
+## Dirección futura
+
+AnimeHub Desktop consumirá este OpenAPI con caché offline. Su biblioteca será local y reconstruible en SQLite; los estados personales serán colecciones, no carpetas físicas. La reproducción se delegará a una aplicación externa. MEGA y Pixeldrain serán proveedores nativos, aria2 administrará HTTP y JDownloader seguirá como integración opcional local o remota.
 
 ## Licencia
 
