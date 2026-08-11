@@ -2,6 +2,7 @@ packages:
   - apps/*
 
 overrides:
+  "@angular-devkit/core>ajv": 8.18.0
   "@angular-devkit/core>picomatch": 4.0.4
   "@nestjs/swagger>js-yaml": 5.2.2
   "@redocly/openapi-core>js-yaml": 4.3.1
