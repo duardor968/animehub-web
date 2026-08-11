@@ -43,8 +43,10 @@ No presentes trabajo futuro como funcionalidad existente ni añadas textos pedag
 
 - Usa App Router y componentes de servidor por defecto; añade `use client` solo por interacción o APIs del navegador.
 - Antes de alterar comportamiento específico de Next.js 16, consulta la documentación instalada en `node_modules/next/dist/docs/`.
-- Mantén la dirección oscura, cálida y cinematográfica: fondos `#0B0A09`/`#161311`, texto `#F3EEE8`, secundario `#A69E96` y acento `#FF4A2D`.
-- Bricolage Grotesque corresponde a títulos y Manrope a interfaz. Las imágenes estructuran la composición; el bermellón señala acción.
+- Mantén la dirección oscura y cinematográfica con base azul petróleo: fondos `#050A11`/`#07101A`, superficies `#0B1621`/`#102130`, texto `#F3F8FC`, secundario `#8FA3B4`, acento esmeralda `#2BD4B0` y azul `#5FA8FF`.
+- Bricolage Grotesque corresponde a títulos y Manrope a interfaz. Las imágenes estructuran la composición; el esmeralda señala acciones y el azul aporta profundidad, foco y progreso.
+- La portada usa un carrusel manual sin autoplay. Los episodios recientes y el navegador de episodios conservan fotogramas, número, contexto temporal y una acción de descarga independiente.
+- El panel de descargas y preferencias se abre desde la derecha. Una descarga individual se resuelve y envía con una sola acción; los lotes conservan el resumen previo y muestran progreso continuo.
 - Evita tarjetas vacías, ornamentos, autoplay, movimiento gratuito y dependencias para abstracciones triviales.
 - Usa HeroUI y bibliotecas maduras cuando resuelvan una interacción real. No añadas DnD si no existe una necesidad de producto.
 - Toda interacción táctil necesita equivalente de teclado y foco visible. Respeta `prefers-reduced-motion`.

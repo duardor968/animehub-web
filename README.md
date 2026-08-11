@@ -16,6 +16,8 @@ La v1 incluye:
 - Envío desde el navegador a Click'n'Load o MyJDownloader, además de copia de enlaces.
 - OpenAPI público como contrato único para Web y Desktop.
 
+La interfaz usa una identidad oscura azul petróleo con acentos esmeralda y azul. La portada incorpora un carrusel manual, los episodios se presentan con fotogramas reales y las descargas individuales se resuelven y envían en una sola acción, con progreso y resultado mediante el sistema de avisos de HeroUI.
+
 No hay cuentas, biblioteca, seguimiento, reproducción, PWA, notificaciones ni panel administrativo.
 
 ## Web y Desktop
@@ -107,6 +109,8 @@ La proyección en PostgreSQL es perezosa y durable:
 La API devuelve enlaces estructurados por episodio, audio y proveedor. Los lotes se resuelven con pg-boss, hasta dos trabajos simultáneos y bloques internos de 50. Cada trabajo entrega un token de capacidad aleatorio; PostgreSQL conserva únicamente su hash.
 
 Click'n'Load se comunica directamente con `127.0.0.1:9666`. MyJDownloader se ejecuta completamente en el navegador mediante un adaptador mínimo: la contraseña se descarta al derivar la sesión y ningún secreto llega a la API. Si Click'n'Load está bloqueado, la interfaz ofrece MyJDownloader o copiar enlaces.
+
+El envío rápido omite el panel únicamente para episodios individuales. Con independencia de esa preferencia, no existe un segundo paso entre resolver y enviar. Los rangos y las series completas mantienen un resumen previo, progreso recuperable y resultados parciales.
 
 ### Contrato
 

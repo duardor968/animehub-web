@@ -1,6 +1,7 @@
 node_modules/
 .next/
 dist/
+dist-dev/
 coverage/
 *.lcov
 generated/
