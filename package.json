@@ -18,10 +18,13 @@
     "test": "pnpm -r test",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "openapi:generate": "pnpm --filter @animehub/api openapi:generate",
+    "openapi:check": "pnpm openapi:generate && git diff --exit-code -- apps/api/openapi.json apps/web/src/lib/api/generated.ts",
     "prisma:generate": "pnpm --filter @animehub/api prisma:generate",
     "prisma:validate": "pnpm --filter @animehub/api prisma:validate"
   },
   "devDependencies": {
+    "openapi-typescript": "7.13.0",
     "prettier": "3.9.6"
   }
 }
