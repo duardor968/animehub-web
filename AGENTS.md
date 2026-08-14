@@ -15,7 +15,7 @@ No presentes trabajo futuro como funcionalidad existente ni añadas textos pedag
 - No añadas Redis en v1.
 - No modifiques `animehub-desktop` ni `Anime downloader`; este último es solo un antecedente conceptual.
 - No ejecutes contenedores localmente. Los Dockerfiles y Compose existen para CI y Coolify.
-- Nunca uses Playwright en este proyecto. Para revisión visual inicial usa Chrome visible; para sesiones aisladas usa el navegador integrado de Codex.
+- Nunca uses Playwright en este proyecto. Realiza toda revisión visual en el Chrome visible del usuario y comprueba 1440×900, 1920×1080, 768×1024 y 390×844.
 
 ## API y datos
 
@@ -43,15 +43,15 @@ No presentes trabajo futuro como funcionalidad existente ni añadas textos pedag
 
 - Usa App Router y componentes de servidor por defecto; añade `use client` solo por interacción o APIs del navegador.
 - Antes de alterar comportamiento específico de Next.js 16, consulta la documentación instalada en `node_modules/next/dist/docs/`.
-- Mantén la dirección oscura y cinematográfica con base azul petróleo: fondos `#050A11`/`#07101A`, superficies `#0B1621`/`#102130`, texto `#F3F8FC`, secundario `#8FA3B4`, acento esmeralda `#2BD4B0` y azul `#5FA8FF`.
-- Bricolage Grotesque corresponde a títulos y Manrope a interfaz. Las imágenes estructuran la composición; el esmeralda señala acciones y el azul aporta profundidad, foco y progreso.
+- Mantén la dirección oscura y cinematográfica con base azul petróleo: fondos `#030711`/`#060B16`, superficies `#0A1220`/`#111A2A`, texto `#F3F8FC`, secundario `#93A4B8`, azul principal `#2F81F7` y turquesa `#30C8B0` reservado a estados puntuales de éxito.
+- Bricolage Grotesque corresponde a títulos y Manrope a interfaz. Las imágenes estructuran la composición; el azul señala acciones, foco y progreso. El turquesa no es una acción principal.
 - La portada usa un carrusel manual sin autoplay. Los episodios recientes y el navegador de episodios conservan fotogramas, número, contexto temporal y una acción de descarga independiente.
 - El panel de descargas y preferencias se abre desde la derecha. Una descarga individual se resuelve y envía con una sola acción; los lotes conservan el resumen previo y muestran progreso continuo.
 - Evita tarjetas vacías, ornamentos, autoplay, movimiento gratuito y dependencias para abstracciones triviales.
 - Usa HeroUI y bibliotecas maduras cuando resuelvan una interacción real. No añadas DnD si no existe una necesidad de producto.
 - Toda interacción táctil necesita equivalente de teclado y foco visible. Respeta `prefers-reduced-motion`.
 - Conserva filtros, páginas y consultas en la URL. Las búsquedas y trabajos deben ser `noindex`.
-- El envío rápido solo aplica a un episodio. Lotes y series completas siempre muestran un resumen previo.
+- `confirmSingleEpisode` solo aplica a un episodio. Lotes y series completas siempre muestran un resumen previo.
 
 ## Calidad
 
