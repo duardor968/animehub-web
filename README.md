@@ -62,6 +62,8 @@ pnpm prisma:generate
 pnpm dev
 ```
 
+`pnpm dev` inicia primero la API y espera a que su comprobación de readiness responda antes de levantar la Web. Así Next.js no sirve una página dependiente de la API durante el compilado inicial de Nest.
+
 - Web: `http://localhost:3000`
 - API: `http://localhost:8000/api/v1`
 - Swagger UI: `http://localhost:8000/docs`
