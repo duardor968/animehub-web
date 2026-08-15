@@ -11,8 +11,10 @@ services:
     environment:
       PORT: 3000
       API_INTERNAL_URL: http://api:8000/api/v1
-    ports:
-      - "${WEB_PORT:-3000}:3000"
+    # Internal only — Coolify's proxy routes the domain to this port. Publishing a
+    # host port (ports:) collides with other apps on the shared VPS.
+    expose:
+      - "3000"
     depends_on:
       api:
         condition: service_healthy
@@ -28,8 +30,9 @@ services:
       DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       ANIMEAV1_BASE_URL: ${ANIMEAV1_BASE_URL:-https://animeav1.com}
-    ports:
-      - "${API_PORT:-8000}:8000"
+    # Internal only — Coolify's proxy routes animehub-api.duardo.dev to this port.
+    expose:
+      - "8000"
     healthcheck:
       test:
         [
