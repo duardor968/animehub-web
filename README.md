@@ -12,7 +12,7 @@ La v1 incluye:
 - Catálogo paginado, búsqueda, sugerencias, filtros y horario semanal estimado.
 - Fichas con metadatos, relaciones explícitas y episodios paginados.
 - Resolución de enlaces por episodio con preferencia SUB y fallback DUB.
-- Lotes y series completas mediante trabajos PostgreSQL recuperables durante 24 horas.
+- Lotes y series completas mediante trabajos por bloques en PostgreSQL (pg-boss) con progreso continuo.
 - Envío desde el navegador a Click'n'Load o MyJDownloader, además de copia de enlaces.
 - OpenAPI público como contrato único para Web y Desktop.
 
@@ -112,7 +112,7 @@ La API devuelve enlaces estructurados por episodio, audio y proveedor. Los lotes
 
 Click'n'Load se comunica directamente con `127.0.0.1:9666`. MyJDownloader se ejecuta completamente en el navegador mediante un adaptador mínimo: la contraseña se descarta al derivar la sesión y ningún secreto llega a la API. Si Click'n'Load está bloqueado, la interfaz ofrece MyJDownloader o copiar enlaces.
 
-La preferencia `confirmSingleEpisode` permite omitir el resumen únicamente para episodios individuales. Con independencia de esa preferencia, no existe un segundo paso entre resolver y enviar. Los rangos y las series completas mantienen un resumen previo, progreso recuperable y resultados parciales.
+La preferencia `confirmSingleEpisode` permite omitir el resumen únicamente para episodios individuales. Con independencia de esa preferencia, no existe un segundo paso entre resolver y enviar. Los rangos y las series completas mantienen un resumen previo, progreso continuo y resultados parciales.
 
 ### Contrato
 
@@ -149,7 +149,7 @@ Todas las respuestas de éxito usan `data` y `meta` cuando corresponde; los erro
 
 ## Producción
 
-Los Dockerfiles y `compose.yaml` preparan Web, API y PostgreSQL para Coolify. No es necesario ejecutar contenedores durante el desarrollo local. CI valida Compose y construye ambas imágenes sin publicarlas; no hay despliegue automático ni dominios configurados.
+La web y la API se empaquetan como imágenes Docker (`apps/web/Dockerfile`, `apps/api/Dockerfile`) orquestadas por `compose.yaml`. El desarrollo local no necesita contenedores: se ejecuta directamente con pnpm. La integración continua valida el Compose y construye ambas imágenes.
 
 ## Dirección futura
 

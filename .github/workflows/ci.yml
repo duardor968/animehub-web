@@ -92,7 +92,9 @@ jobs:
   containers:
     runs-on: ubuntu-latest
     env:
-      POSTGRES_PASSWORD: animehub_ci
+      # Compose requires DATABASE_URL (cloud DB is the shared Supabase); a dummy
+      # value is enough to validate the Compose file.
+      DATABASE_URL: postgresql://user:pass@db:5432/postgres?schema=animehub
     steps:
       - uses: actions/checkout@v4
       - name: Validate Compose

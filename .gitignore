@@ -10,11 +10,13 @@ generated/
 !.env.example
 *.log
 *.tsbuildinfo
-.DS_Store
-Thumbs.db
-.idea/
 .vscode/
 .agents/
 .claude/
-.windsurf/
 skills-lock.json
+/tmp
+
+# Public repo: keep infrastructure/agent docs out of version control
+AGENTS.md
+CLAUDE.md
+cloud.env
