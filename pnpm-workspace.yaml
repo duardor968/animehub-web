@@ -15,6 +15,15 @@ publicHoistPattern:
 strictPeerDependencies: false
 confirmModulesPurge: false
 
+# GHSA-ggr8-5vv4-36mx: stack-exhaustion (DoS) in deepmerge-ts <8.0.0, pulled in
+# transitively by @prisma/config. Only reachable via Prisma's build-time config
+# merge, never a runtime request path with attacker-controlled recursive input,
+# so it's not exploitable here. Prisma pins deepmerge-ts@7; drop this entry once a
+# Prisma release moves to >=8.0.0.
+auditConfig:
+  ignoreGhsas:
+    - GHSA-ggr8-5vv4-36mx
+
 allowBuilds:
   "@prisma/engines": true
   "@scarf/scarf": false
