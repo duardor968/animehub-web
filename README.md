@@ -133,19 +133,19 @@ Todas las respuestas de éxito usan `data` y `meta` cuando corresponde; los erro
 
 ## Variables
 
-| Variable                                            | Uso                                                         |
-| --------------------------------------------------- | ----------------------------------------------------------- |
-| `PORT`                                              | Puerto HTTP de la API                                       |
-| `DATABASE_URL`                                      | Conexión PostgreSQL y almacenamiento de trabajos            |
-| `CORS_ORIGINS`                                      | Orígenes permitidos, separados por comas                    |
-| `NEXT_PUBLIC_API_URL`                               | URL pública de `/api/v1` accesible por el navegador         |
-| `API_INTERNAL_URL`                                  | URL de la API usada por el renderizado del servidor Next.js |
-| `NEXT_PUBLIC_SITE_URL`                              | Origen canónico público de la web                           |
-| `ANIMEAV1_BASE_URL`                                 | Origen de la única fuente permitida                         |
-| `SOURCE_USER_AGENT`                                 | Identificación de las solicitudes a la fuente               |
-| `JOBS_ENABLED`                                      | Activa los workers pg-boss; puede desactivarse en pruebas   |
-| `LOG_LEVEL`                                         | Nivel de logs estructurados de Fastify                      |
-| `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` | Credenciales exigidas únicamente por Compose                |
+| Variable                                            | Uso                                                                                                  |
+| --------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `PORT`                                              | Puerto HTTP de la API                                                                                |
+| `DATABASE_URL`                                      | Conexión PostgreSQL y almacenamiento de trabajos                                                     |
+| `CORS_ORIGINS`                                      | Orígenes permitidos, separados por comas                                                             |
+| `NEXT_PUBLIC_API_URL`                               | URL pública de `/api/v1` accesible por el navegador                                                  |
+| `API_INTERNAL_URL`                                  | URL de la API usada por el renderizado del servidor Next.js                                          |
+| `NEXT_PUBLIC_SITE_URL`                              | Origen canónico público de la web                                                                    |
+| `ANIMEAV1_BASE_URL`                                 | Origen de la única fuente permitida                                                                  |
+| `SOURCE_USER_AGENT`                                 | Identificación de las solicitudes a la fuente                                                        |
+| `JOBS_ENABLED`                                      | Activa pg-boss y los refrescos proactivos; usar una sola réplica con jobs al escalar horizontalmente |
+| `LOG_LEVEL`                                         | Nivel de logs estructurados de Fastify                                                               |
+| `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` | Credenciales exigidas únicamente por Compose                                                         |
 
 ## Producción
 
