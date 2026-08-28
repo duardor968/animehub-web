@@ -30,7 +30,7 @@ No hay cuentas, biblioteca, seguimiento, reproducción, PWA, notificaciones ni p
 
 - Node.js 24.13.0 y pnpm 11.20.0
 - Next.js 16.3.0, React 19.2.8, App Router y TypeScript 5.9
-- HeroUI 3.2.3 y Tailwind CSS 4.3.3
+- HeroUI 3.2.4 y Tailwind CSS 4.3.3
 - NestJS 11.1.28 sobre Fastify 5
 - Prisma 7.9.1, PostgreSQL y pg-boss
 - Vitest, Jest, Testing Library, ESLint y Prettier
