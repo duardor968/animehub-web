@@ -30,7 +30,7 @@ No hay cuentas, biblioteca, seguimiento, reproducción, PWA, notificaciones ni p
 
 - Node.js 24.13.0 y pnpm 11.20.0
 - Next.js 16.3.0, React 19.2.8, App Router y TypeScript 5.9
-- HeroUI 3.2.4 y Tailwind CSS 4.3.3
+- HeroUI 3.2.6 y Tailwind CSS 4.3.3
 - NestJS 11.1.28 sobre Fastify 5
 - Prisma 7.9.1, PostgreSQL y pg-boss
 - Vitest, Jest, Testing Library, ESLint y Prettier
@@ -85,13 +85,14 @@ pnpm format:check
 pnpm lint
 pnpm typecheck
 pnpm test
-pnpm --filter @animehub/api test:e2e
+$env:TEST_DATABASE_URL = $env:DATABASE_URL
+pnpm --filter @animehub/api test:integration
 pnpm openapi:check
 pnpm audit --audit-level high
 pnpm build
 ```
 
-La revisión visual se realiza exclusivamente en el Chrome visible del usuario, incluyendo los viewports de escritorio, tablet y móvil acordados. Este proyecto no utiliza Playwright.
+La revisión visual se realiza en el Chrome visible de la computadora en la que se trabaja, incluyendo los viewports de escritorio, tablet y móvil acordados. Este proyecto no utiliza Playwright.
 
 ## Arquitectura
 
@@ -101,10 +102,12 @@ La API consume únicamente endpoints JSON internos de SvelteKit y decodifica sus
 
 La proyección en PostgreSQL es perezosa y durable:
 
-- Solo persiste contenido descubierto por solicitudes reales.
-- Sirve la última copia mientras revalida datos vencidos.
+- Persiste contenido descubierto por solicitudes reales y mantiene la portada con trabajos independientes de las visitas.
+- La portada sirve inmediatamente la última copia disponible, incluso parcial o vencida; nunca espera al scraper. Episodios se refrescan cada 3 minutos y la portada completa cada 10.
 - Un `404` explícito repetido marca una obra como no disponible sin borrar su historial.
 - La frescura varía entre 15 minutos y 180 días según el recurso y su estabilidad.
+
+La portada tiene límites de lectura y refresco, publicación atómica y recuperación automática visible sin controles adicionales. Detalles y pruebas: [caché de portada](docs/home-cache.md).
 
 ### Descargas
 
@@ -133,19 +136,19 @@ Todas las respuestas de éxito usan `data` y `meta` cuando corresponde; los erro
 
 ## Variables
 
-| Variable                                            | Uso                                                                                                  |
-| --------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| `PORT`                                              | Puerto HTTP de la API                                                                                |
-| `DATABASE_URL`                                      | Conexión PostgreSQL y almacenamiento de trabajos                                                     |
-| `CORS_ORIGINS`                                      | Orígenes permitidos, separados por comas                                                             |
-| `NEXT_PUBLIC_API_URL`                               | URL pública de `/api/v1` accesible por el navegador                                                  |
-| `API_INTERNAL_URL`                                  | URL de la API usada por el renderizado del servidor Next.js                                          |
-| `NEXT_PUBLIC_SITE_URL`                              | Origen canónico público de la web                                                                    |
-| `ANIMEAV1_BASE_URL`                                 | Origen de la única fuente permitida                                                                  |
-| `SOURCE_USER_AGENT`                                 | Identificación de las solicitudes a la fuente                                                        |
-| `JOBS_ENABLED`                                      | Activa pg-boss y los refrescos proactivos; usar una sola réplica con jobs al escalar horizontalmente |
-| `LOG_LEVEL`                                         | Nivel de logs estructurados de Fastify                                                               |
-| `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` | Credenciales exigidas únicamente por Compose                                                         |
+| Variable                                            | Uso                                                                                                     |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `PORT`                                              | Puerto HTTP de la API                                                                                   |
+| `DATABASE_URL`                                      | Conexión PostgreSQL y almacenamiento de trabajos                                                        |
+| `CORS_ORIGINS`                                      | Orígenes permitidos, separados por comas                                                                |
+| `NEXT_PUBLIC_API_URL`                               | URL pública de `/api/v1` accesible por el navegador                                                     |
+| `API_INTERNAL_URL`                                  | URL de la API usada por el renderizado del servidor Next.js                                             |
+| `NEXT_PUBLIC_SITE_URL`                              | Origen canónico público de la web                                                                       |
+| `ANIMEAV1_BASE_URL`                                 | Origen de la única fuente permitida                                                                     |
+| `SOURCE_USER_AGENT`                                 | Identificación de las solicitudes a la fuente                                                           |
+| `JOBS_ENABLED`                                      | Activa pg-boss y los refrescos proactivos; la portada coordina réplicas mediante un lease en PostgreSQL |
+| `LOG_LEVEL`                                         | Nivel de logs estructurados de Fastify                                                                  |
+| `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` | Credenciales exigidas únicamente por Compose                                                            |
 
 ## Producción
 

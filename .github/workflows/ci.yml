@@ -61,6 +61,10 @@ jobs:
         run: pnpm typecheck
       - name: Run unit tests
         run: pnpm test
+      - name: Test home transactions and distributed lease
+        run: pnpm --filter @animehub/api test:integration
+        env:
+          TEST_DATABASE_URL: ${{ env.DATABASE_URL }}
       - name: Check OpenAPI contract drift
         run: pnpm openapi:check
       - name: Audit high-severity dependencies
