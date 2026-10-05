@@ -88,11 +88,16 @@ pnpm test
 $env:TEST_DATABASE_URL = $env:DATABASE_URL
 pnpm --filter @animehub/api test:integration
 pnpm openapi:check
-pnpm audit --audit-level high
+pnpm test:audit
+pnpm audit:ci
 pnpm build
 ```
 
 La revisión visual se realiza en el Chrome visible de la computadora en la que se trabaja, incluyendo los viewports de escritorio, tablet y móvil acordados. Este proyecto no utiliza Playwright.
+
+### Política de auditoría en CI
+
+Las vulnerabilidades altas/críticas en dependencias de producción bloquean CI, salvo las exclusiones preexistentes y documentadas en `pnpm-workspace.yaml`. Los avisos exclusivos de herramientas de desarrollo se muestran como advertencias sin bloquear la publicación. Los errores de red, registro, ejecución o informes inválidos de la auditoría sí bloquean. Tests, tipos, build y detección de secretos mantienen sus controles obligatorios. `pnpm audit:ci` no añade ninguna exclusión para `braces`.
 
 ## Arquitectura
 

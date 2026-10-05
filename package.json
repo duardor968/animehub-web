@@ -21,7 +21,9 @@
     "openapi:generate": "pnpm --filter @animehub/api openapi:generate",
     "openapi:check": "pnpm openapi:generate && git diff --exit-code -- apps/api/openapi.json apps/web/src/lib/api/generated.ts",
     "prisma:generate": "pnpm --filter @animehub/api prisma:generate",
-    "prisma:validate": "pnpm --filter @animehub/api prisma:validate"
+    "prisma:validate": "pnpm --filter @animehub/api prisma:validate",
+    "audit:ci": "node scripts/audit-dependencies.mjs",
+    "test:audit": "node --test scripts/audit-dependencies.test.mjs"
   },
   "devDependencies": {
     "openapi-typescript": "7.13.0",

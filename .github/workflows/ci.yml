@@ -67,8 +67,10 @@ jobs:
           TEST_DATABASE_URL: ${{ env.DATABASE_URL }}
       - name: Check OpenAPI contract drift
         run: pnpm openapi:check
-      - name: Audit high-severity dependencies
-        run: pnpm audit --audit-level high
+      - name: Verify dependency audit policy
+        run: pnpm test:audit
+      - name: Audit production and report development dependencies
+        run: pnpm audit:ci
       - name: Build applications
         run: pnpm build
 
