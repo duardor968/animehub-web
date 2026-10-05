@@ -4,3 +4,6 @@ dist
 coverage
 generated
 pnpm-lock.yaml
+
+# Preserve the exact Google Search Console verification download.
+apps/web/public/google1aa25cf7837ac6cd.html
